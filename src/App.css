@@ -1,0 +1,392 @@
+/* App.css */
+.consultation-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Overlay de salle d'attente */
+.waiting-room-overlay {
+  position: absolute;
+  top: 4.5rem;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1000;
+  padding: 2rem;
+}
+
+.waiting-content {
+  text-align: center;
+  padding-top: 4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 26px;
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.avatar-container {
+  width: 183px;
+  height: 183px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid #6DC0F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-border {
+  width: 143px;
+  height: 143px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 1px solid #6DC0F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-image {
+  width: 128px;
+  height: 128px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: #B9CFD0;
+}
+
+.waiting-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.waiting-title {
+ color: #303030;
+  text-align: center;
+  font-family: 'Montserrat';
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+}
+
+.waiting-message {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.5;
+  margin-bottom: 2rem;
+}
+
+.waiting-actions {
+  position: absolute;
+  bottom: 40px;
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  align-items: center;
+}
+
+.leave-button {
+  background: #e74c3c;
+  border: none;
+  color: white;
+  padding: 16px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  width: 50px;
+  height: 50px;
+}
+
+.video-button , .audio-button {
+  background: #989898;
+  border: none;
+  color: white;
+  padding: 16px;
+  border-radius: 50%;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  width: 50px;
+  height: 50px;
+}
+
+.video-button:hover , .audio-button:hover {
+  background: #777777;
+}
+
+/* Prévisualisation patient */
+.patient-video-preview {
+  position: fixed;
+  bottom: 50px;
+  right: 70px;
+  width: 210px;
+  height: 140px;
+  border-radius: 16px;
+  border: 1px solid white;
+  background: #D1DFC3;
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.patient-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.live-video , .live-video-large {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.epingler-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.8);
+  background: rgba(0, 0, 0, 0.8);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 10px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+}
+
+.epingler-button:hover {
+  background: rgba(25, 118, 210, 0.9);
+  border-color: rgba(255, 255, 255, 0.6);
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 8px 25px rgba(25, 118, 210, 0.4);
+}
+
+.patient-video-preview:hover .epingler-button ,
+.patient-video-preview-large:hover .epingler-button {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+  animation: pulseFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* Animation d'apparition améliorée */
+@keyframes pulseFadeIn {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+    visibility: hidden;
+  }
+  50% {
+    opacity: 0.7;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    visibility: visible;
+  }
+}
+
+@keyframes gentlePulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(25, 118, 210, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(25, 118, 210, 0.2);
+  }
+}
+
+.epingler-button.epingle {
+  animation: gentlePulse 2s infinite;
+}
+
+/* Indicateur d'état épinglé */
+.epingler-button::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 12px;
+  height: 12px;
+  background: #4caf50;
+  border-radius: 50%;
+  border: 2px solid white;
+  opacity: 0;
+  transform: scale(0);
+  transition: all 0.3s ease;
+}
+
+/* Tooltip */
+.epingler-button::before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  z-index: 11;
+}
+
+.epingler-button:hover::before {
+  opacity: 1;
+  visibility: visible;
+  bottom: calc(100% + 10px);
+}
+
+/* Variantes selon l'état */
+.epingler-button.epingle::before {
+  content: "Désépingler";
+}
+
+.epingler-button:not(.epingle)::before {
+  content: "Épingler";
+}
+
+/* Support du mode sombre */
+@media (prefers-color-scheme: dark) {
+  .epingler-button {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+  
+  .epingler-button::before {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(15px);
+  }
+}
+
+.patient-video-preview-large {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  background-color: #D1DFC3;
+  background: radial-gradient(50% 50% at 50% 50%, rgba(0, 0, 0, 0.00) 0%, rgba(0, 0, 0, 0.20) 91.67%), #7C7C92;
+}
+
+/* Container Jitsi */
+.jitsi-container {
+  width: 100%;
+  height: 100%;
+  transition: filter 0.3s ease;
+}
+
+.jitsi-container.blurred {
+  filter: blur(5px);
+  pointer-events: none;
+  /* visibility: hidden; */
+}
+
+/* Styles pour la vue consultation active */
+.consultation-active {
+  background: transparent;
+}
+
+.consultation-active .jitsi-container {
+  filter: none;
+  pointer-events: all;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .waiting-content {
+    padding: 1rem;
+    max-width: 90%;
+  }
+  
+  .doctor-avatar {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .waiting-title {
+    font-size: 20px;
+  }
+  
+  .waiting-message {
+    font-size: 14px;
+  }
+  
+  .patient-preview {
+    width: 120px;
+    height: 120px;
+    bottom: 20px;
+    right: 20px;
+  }
+}
+
+/* Personnalisation supplémentaire de Jitsi */
+#jitsiContainer iframe {
+  border-radius: 12px !important;
+}
+
+/* Cache certains éléments de Jitsi non désirés */
+.jitsi-watermark,
+.info-dialog {
+  display: none !important;
+}
+
+/* Style des boutons de contrôle */
+.toolbox-content-items {
+  background: transparent !important;
+  border-radius: 25px !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* App.css */
+
+.main-container {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  min-height: 400px;
+}
+
+/* Vidéo */
+.video-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}

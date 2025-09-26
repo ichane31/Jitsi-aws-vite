@@ -1,0 +1,52 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.app {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #ffffff;
+  width: 100vw;
+  height: 100vh;
+  padding: 2rem;
+  padding-top: 4.5rem;
+}
+
+.jitsi-container {
+  width: 100%;
+  height: 100%;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.jitsi-container::-webkit-scrollbar {
+  display: none;
+}
+
+#jitsiMeeting-0 {
+  width: 100%;
+  max-width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.welcome-page::-webkit-scrollbar {
+  display: none;
+}
+
+.toolbox-content-items {
+  background: transparent !important;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color: #213547;
+    background-color: #ffffff;
+  }
+}

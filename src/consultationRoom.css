@@ -1,0 +1,515 @@
+/* Consultation Advanced Styles */
+
+.consultation-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f8f9fa 100%);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+}
+
+/* Indicateur de statut */
+.connection-indicator {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 2000;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.connection-indicator.connecting {
+  background: rgba(255, 193, 7, 0.9);
+  color: #663c00;
+}
+
+.connection-indicator.waiting {
+  background: rgba(33, 150, 243, 0.9);
+  color: white;
+}
+
+.connection-indicator.connected {
+  background: rgba(76, 175, 80, 0.9);
+  color: white;
+}
+
+/* Overlay de salle d'attente */
+.waiting-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.waiting-card {
+  text-align: center;
+  max-width: 480px;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* Profil du docteur */
+.doctor-profile {
+  margin-bottom: 2.5rem;
+}
+
+.doctor-avatar-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 1.5rem;
+}
+
+.doctor-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #e3f2fd;
+  box-shadow: 0 8px 32px rgba(33, 150, 243, 0.2);
+}
+
+.status-indicator {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  background: #4caf50;
+  border: 4px solid white;
+  border-radius: 50%;
+  animation: statusPulse 2s infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { 
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7);
+  }
+  50% { 
+    transform: scale(1.05);
+    box-shadow: 0 0 0 8px rgba(76, 175, 80, 0);
+  }
+}
+
+.doctor-name {
+  font-size: 28px;
+  font-weight: 700;
+  color: #1565c0;
+  margin-bottom: 0.5rem;
+  letter-spacing: -0.5px;
+}
+
+.doctor-speciality {
+  font-size: 16px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Message d'attente */
+.waiting-message {
+  margin-bottom: 2rem;
+}
+
+.waiting-message p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+}
+
+/* Animation de chargement */
+.loading-animation {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 2rem;
+}
+
+.loading-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  animation: loadingBounce 1.4s infinite ease-in-out both;
+}
+
+.loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.loading-dot:nth-child(2) { animation-delay: -0.16s; }
+.loading-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes loadingBounce {
+  0%, 80%, 100% { 
+    transform: scale(0.8);
+    opacity: 0.5;
+  } 
+  40% { 
+    transform: scale(1.2);
+    opacity: 1;
+  }
+}
+
+/* Prévisualisation vidéo patient */
+.patient-video-preview {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 200px;
+  height: 150px;
+  z-index: 1001;
+  animation: slideInUp 0.5s ease-out 0.3s both;
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.video-placeholder {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 16px;
+  border: 3px solid white;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+.patient-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.video-controls {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+  padding: 8px;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.control-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  background: white;
+  transform: scale(1.05);
+}
+
+/* Container Jitsi */
+.jitsi-meeting-container {
+  width: 100%;
+  height: 100%;
+  transition: all 0.5s ease;
+}
+
+.jitsi-meeting-container.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95);
+}
+
+.jitsi-meeting-container.visible {
+  opacity: 1;
+  pointer-events: all;
+  transform: scale(1);
+}
+
+/* Footer */
+.consultation-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 12px 20px;
+  z-index: 100;
+}
+
+.footer-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: #666;
+}
+
+.footer-links span:not(:nth-child(even)) {
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-links span:not(:nth-child(even)):hover {
+  color: #1976d2;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .waiting-card {
+    margin: 1rem;
+    padding: 2rem 1.5rem;
+    max-width: calc(100% - 2rem);
+  }
+  
+  .doctor-avatar-container {
+    width: 100px;
+    height: 100px;
+  }
+  
+  .doctor-name {
+    font-size: 24px;
+  }
+  
+  .patient-video-preview {
+    width: 150px;
+    height: 120px;
+    bottom: 80px;
+    right: 20px;
+  }
+  
+  .connection-indicator {
+    top: 10px;
+    right: 10px;
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+  
+  .footer-links {
+    flex-wrap: wrap;
+    gap: 8px;
+    font-size: 10px;
+  }
+  
+  .footer-links span:nth-child(even) {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .waiting-card {
+    padding: 1.5rem 1rem;
+  }
+  
+  .doctor-name {
+    font-size: 20px;
+  }
+  
+  .waiting-message p {
+    font-size: 14px;
+  }
+  
+  .patient-video-preview {
+    width: 120px;
+    height: 90px;
+  }
+  
+  .consultation-footer {
+    padding: 8px 12px;
+  }
+}
+
+/* Animations supplémentaires pour l'expérience utilisateur */
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-5px); }
+}
+
+.doctor-avatar-container {
+  animation: gentleFloat 3s ease-in-out infinite;
+}
+
+/* Styles pour les notifications toast (optionnel) */
+.toast-notification {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  padding: 16px 20px;
+  max-width: 300px;
+  z-index: 2001;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.toast-success {
+  border-left: 4px solid #4caf50;
+}
+
+.toast-info {
+  border-left: 4px solid #2196f3;
+}
+
+.toast-warning {
+  border-left: 4px solid #ff9800;
+}
+
+/* Personnalisation des éléments Jitsi */
+.jitsi-meeting-container iframe {
+  border-radius: 0 !important;
+}
+
+/* Masquer les éléments indésirables de Jitsi */
+.jitsi-watermark,
+.info-dialog,
+.welcome-page,
+.prejoin-page {
+  display: none !important;
+}
+
+/* Style personnalisé pour la barre d'outils Jitsi */
+body .toolbox {
+  background: rgba(0, 0, 0, 0.85) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 25px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Style pour les boutons de la barre d'outils */
+body .toolbox .toolbox-button {
+  border-radius: 12px !important;
+  margin: 0 2px !important;
+  transition: all 0.2s ease !important;
+}
+
+body .toolbox .toolbox-button:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  transform: scale(1.05) !important;
+}
+
+/* Personnalisation du chat */
+body .chat-container {
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+/* Style pour les participants */
+body .participant {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+/* Amélioration de la qualité visuelle */
+body .videocontainer {
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Indicateurs de son/micro */
+body .audioIndicator {
+  border-radius: 50% !important;
+  background: rgba(244, 67, 54, 0.9) !important;
+}
+
+/* Mode plein écran personnalisé */
+@media (orientation: landscape) and (max-height: 500px) {
+  .waiting-overlay {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    padding: 1rem;
+  }
+  
+  .waiting-card {
+    max-width: 400px;
+    padding: 2rem;
+  }
+  
+  .patient-video-preview {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    margin-left: 2rem;
+  }
+}
+
+/* Dark mode support (optionnel) */
+@media (prefers-color-scheme: dark) {
+  .consultation-wrapper {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  }
+  
+  .waiting-card {
+    background: #2d2d2d;
+    color: white;
+    border: 1px solid #404040;
+  }
+  
+  .doctor-name {
+    color: #64b5f6;
+  }
+  
+  .waiting-message p {
+    color: #ccc;
+  }
+  
+  .consultation-footer {
+    background: rgba(45, 45, 45, 0.95);
+    border-top: 1px solid #404040;
+  }
+  
+  .footer-links {
+    color: #ccc;
+  }
+}
