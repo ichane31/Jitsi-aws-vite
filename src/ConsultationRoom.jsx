@@ -142,7 +142,7 @@ const ConsultationRoom = ({
   }, [isPipActive, isPipReady, captureLocalVideoForPip, createFallbackVideo]);
 
   // Désactiver Picture-in-Picture
-  const exitPictureInPicture = async () => {
+  const exitPictureInPicture = useCallback(async () => {
     if (document.pictureInPictureElement) {
       try {
         await document.exitPictureInPicture();
@@ -151,7 +151,7 @@ const ConsultationRoom = ({
         console.error("Erreur lors de la sortie du PiP:", error);
       }
     }
-  };
+  }, []);
 
   // Activer/désactiver Picture-in-Picture manuellement
   const togglePictureInPicture = async () => {
@@ -193,7 +193,7 @@ const ConsultationRoom = ({
     return () => {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [autoPipEnabled, enterPictureInPicture]);
+  }, [autoPipEnabled, enterPictureInPicture, exitPictureInPicture]);
 
   // Gérer les événements PiP pour mettre à jour l'état
   useEffect(() => {
@@ -225,19 +225,18 @@ const ConsultationRoom = ({
     }
   }, []);
 
-  // Nettoyer le flux vidéo à la sortie
   useEffect(() => {
-    return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-      }
-      if (pipVideoRef.current && pipVideoRef.current.srcObject) {
-        const tracks = pipVideoRef.current.srcObject.getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-      exitPictureInPicture();
-    };
-  }, []);
+  const videoElement = pipVideoRef.current; // capture de la référence au moment du montage
+
+  return () => {
+    if (videoElement && videoElement.srcObject) {
+      const tracks = videoElement.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    exitPictureInPicture();
+  };
+}, [exitPictureInPicture]);
+
 
   const startLocalVideo = useCallback(async () => {
     try {

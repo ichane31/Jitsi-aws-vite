@@ -116,7 +116,7 @@ const OtherPage = ({
   }, [isPipActive, isPipReady, captureJitsiVideo]);
 
   // Désactiver Picture-in-Picture
-  const exitPictureInPicture = async () => {
+  const exitPictureInPicture = useCallback(async () => {
     if (document.pictureInPictureElement) {
       try {
         await document.exitPictureInPicture();
@@ -125,7 +125,7 @@ const OtherPage = ({
         console.error("Erreur lors de la sortie du PiP:", error);
       }
     }
-  };
+  }, []);
 
   // Activer/désactiver Picture-in-Picture manuellement
   const togglePictureInPicture = async () => {
@@ -165,7 +165,7 @@ const OtherPage = ({
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [isPipReady, autoPipEnabled, enterPictureInPicture]);
+  }, [isPipReady, autoPipEnabled, enterPictureInPicture, exitPictureInPicture]);
 
   // Gérer les événements PiP pour mettre à jour l'état
   useEffect(() => {
@@ -191,16 +191,18 @@ const OtherPage = ({
     }
   }, []);
 
-  // Nettoyer le flux vidéo à la sortie
   useEffect(() => {
-    return () => {
-      if (pipVideoRef.current && pipVideoRef.current.srcObject) {
-        const tracks = pipVideoRef.current.srcObject.getTracks();
-        tracks.forEach(track => track.stop());
-      }
-      exitPictureInPicture();
-    };
-  }, []);
+  const videoElement = pipVideoRef.current;
+
+  return () => {
+    if (videoElement && videoElement.srcObject) {
+      const tracks = videoElement.srcObject.getTracks();
+      tracks.forEach(track => track.stop());
+    }
+    exitPictureInPicture();
+  };
+}, [exitPictureInPicture]);
+
 
   const handleJitsiIFrameRef = (iframeRef) => {
     if (iframeRef) {
