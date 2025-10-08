@@ -9,8 +9,6 @@ import {
   VideoOff,
   Mic,
   MicOff,
-  SwitchCamera,
-  User,
   Pin,
   PinOff,
 } from "lucide-react";
@@ -80,9 +78,7 @@ const ConsultationApp = ({
   const jitsiInterfaceConfig = {
     TOOLBAR_BUTTONS: ["microphone", "hangup", "camera"],
     SHOW_JITSI_WATERMARK: false,
-    TOOLBAR_ALWAYS_VISIBLE: true,
-    DEFAULT_BACKGROUND: "#f8f9fa",
-    CUSTOM_STYLE_URL: "/config/custom.css",
+    TOOLBAR_ALWAYS_VISIBLE: false,
     SHOW_WATERMARK_FOR_GUESTS: false,
     SHOW_BRAND_WATERMARK: false,
     BRAND_WATERMARK_LINK: '',
@@ -376,8 +372,8 @@ const ConsultationApp = ({
       >
         <JitsiMeeting
           onApiReady={handleApiReady}
-          // domain="51ff884f8938.ngrok-free.app"
-          // externalApiUrl="https://51ff884f8938.ngrok-free.app/external_api.js"
+          // domain="70f2089d9e31.ngrok-free.app"
+          // externalApiUrl="https://70f2089d9e31.ngrok-free.app/external_api.js"
           domain="jitsi-meet-clinital.duckdns.org"
           externalApiUrl="https://jitsi-meet-clinital.duckdns.org/external_api.js"
           roomName={roomId || `test123`}

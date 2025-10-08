@@ -1,43 +1,21 @@
 import { JitsiMeeting } from "@jitsi/react-sdk";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import patientImage from "./assets/images/patient.png";
 import doctorImage from "./assets/images/doctor.png";
-// Lucide react icons
-import {
-  PhoneOff,
-  Video,
-  VideoOff,
-  Mic,
-  MicOff,
-  SwitchCamera,
-  User,
-  Pin,
-  PinOff,
-} from "lucide-react";
-
 import "./App.css";
 
-const ConsultationApp = ({
+const Test = ({
   patient,
   doctor,
   roomId = "test123",
   userType = "patient",
 }) => {
-  const [participantCount, setParticipantCount] = useState(1); // on compte le self
-  const [showWaitingRoom, setShowWaitingRoom] = useState(true);
+  const apiRef = useRef(null);
+  const jitsiContainerRef = useRef(null);
+  const [isPipActive, setIsPipActive] = useState(false);
+  const [isConferenceJoined, setIsConferenceJoined] = useState(false);
+  const [isMuted, setIsMuted] = useState(userType === "patient");
   const [isVideoMuted, setIsVideoMuted] = useState(false);
-  const [isAudioMuted, setIsAudioMuted] = useState(userType === "patient");
-  const [swappedView, setSwappedView] = useState(false);
-  const localVideoRef = useRef(null);
-  const [iJoined, setIJoined] = useState(false);
-  const [localStream, setLocalStream] = useState(null);
-  const jitsiRef = useRef(null);
-
-  // Effet pour gérer l'affichage de la salle d'attente
-  useEffect(() => {
-    // Afficher la salle d'attente seulement si l'utilisateur a rejoint ET qu'il est seul
-    setShowWaitingRoom(iJoined && participantCount < 2);
-  }, [iJoined, participantCount]);
 
   const patientInfo = {
     name: patient?.nom || "Patient",
@@ -50,23 +28,164 @@ const ConsultationApp = ({
     speciality: doctor?.specialite || "Médecin Généraliste",
   };
 
+  // Vérifier si PiP est supporté
+  const isPipSupported = () => {
+    return 'pictureInPictureEnabled' in document;
+  };
+
+  // Créer le PiP
+  const createPip = async () => {
+    if (!isPipSupported()) {
+      alert("Picture-in-Picture n'est pas supporté sur ce navigateur");
+      return;
+    }
+
+    if (!jitsiContainerRef.current) {
+      alert("La conférence n'est pas chargée");
+      return;
+    }
+
+    try {
+      // Créer un élément vidéo
+      const video = document.createElement('video');
+      video.width = 640;
+      video.height = 360;
+      video.muted = true;
+      video.playsInline = true;
+      video.style.backgroundColor = '#000';
+
+      // Capturer le contenu de l'iframe Jitsi
+      const jitsiIframe = jitsiContainerRef.current.querySelector('iframe');
+      if (!jitsiIframe) {
+        throw new Error("Iframe Jitsi non trouvée");
+      }
+
+      // Utiliser getDisplayMedia pour capturer l'onglet
+      const stream = await navigator.mediaDevices.getDisplayMedia({
+        video: {
+          displaySurface: 'browser',
+          cursor: 'never'
+        },
+        audio: false
+      });
+
+      video.srcObject = stream;
+
+      video.onloadedmetadata = async () => {
+        try {
+          await video.play();
+          await video.requestPictureInPicture();
+          setIsPipActive(true);
+
+          // Gérer la fermeture du PiP
+          video.addEventListener('leavepictureinpicture', () => {
+            cleanupPip(stream, video);
+          });
+
+          // Gérer la fin du stream
+          stream.getVideoTracks()[0].addEventListener('ended', () => {
+            cleanupPip(stream, video);
+          });
+
+        } catch (error) {
+          console.error("Erreur activation PiP:", error);
+          cleanupPip(stream, video);
+        }
+      };
+
+    } catch (error) {
+      console.error("Erreur création PiP:", error);
+      if (error.name === 'NotAllowedError') {
+        alert("Vous devez autoriser la capture d'écran pour utiliser le PiP");
+      } else {
+        alert("Erreur: " + error.message);
+      }
+    }
+  };
+
+  // Nettoyer le PiP
+  const cleanupPip = (stream, video) => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+    }
+    if (video) {
+      video.remove();
+    }
+    setIsPipActive(false);
+  };
+
+  // Toggle PiP
+  const togglePip = async () => {
+    if (isPipActive) {
+      if (document.pictureInPictureElement) {
+        await document.exitPictureInPicture();
+      }
+      setIsPipActive(false);
+    } else {
+      await createPip();
+    }
+  };
+
+  // Fonctions de contrôle
+  const toggleMicrophone = () => {
+    if (apiRef.current) {
+      apiRef.current.executeCommand('toggleAudio');
+      setIsMuted(!isMuted);
+    }
+  };
+
+  const toggleCamera = () => {
+    if (apiRef.current) {
+      apiRef.current.executeCommand('toggleVideo');
+      setIsVideoMuted(!isVideoMuted);
+    }
+  };
+
+  const hangupCall = () => {
+    if (apiRef.current) {
+      apiRef.current.executeCommand('hangup');
+    }
+    setIsPipActive(false);
+  };
+
+  // Gérer l'API Jitsi
+  const handleApiReady = (api) => {
+    apiRef.current = api;
+    console.log("API Jitsi prête");
+
+    api.addEventListener('videoConferenceJoined', () => {
+      console.log('Conférence rejointe');
+      setIsConferenceJoined(true);
+    });
+
+    api.addEventListener('videoConferenceLeft', () => {
+      console.log('Conférence quittée');
+      setIsConferenceJoined(false);
+      setIsPipActive(false);
+    });
+
+    api.addEventListener('audioMuteStatusChanged', (event) => {
+      setIsMuted(event.muted);
+    });
+
+    api.addEventListener('videoMuteStatusChanged', (event) => {
+      setIsVideoMuted(event.muted);
+    });
+  };
+
   const handleJitsiIFrameRef = (iframeRef) => {
     if (iframeRef) {
       iframeRef.style.border = "none";
       iframeRef.style.borderRadius = "12px";
       iframeRef.style.height = "100%";
       iframeRef.style.width = "100%";
-      iframeRef.style.boxShadow = "0 8px 32px rgba(0, 0, 0, 0.1)";
-      iframeRef.style.overflow = "hidden";
     }
   };
 
   const handleReadyToClose = () => {
     console.log("Consultation terminée");
+    setIsPipActive(false);
   };
-
-  // const generateRoomName = () =>
-  //   roomId || `ConsultationRoom-${Math.random().toString(36).substr(2, 9)}`;
 
   const jitsiConfig = {
     prejoinPageEnabled: false,
@@ -74,324 +193,169 @@ const ConsultationApp = ({
     startWithVideoMuted: false,
     enableWelcomePage: false,
     disableModeratorIndicator: true,
-    p2p: { enabled: false },
   };
 
   const jitsiInterfaceConfig = {
-    // TOOLBAR_BUTTONS: ["microphone", "hangup", "camera", "chat", "tileview"],
-    TOOLBAR_BUTTONS: ["microphone", "hangup", "camera", "chat", "tileview"],
+    TOOLBAR_BUTTONS: ["microphone", "camera", "hangup"],
     SHOW_JITSI_WATERMARK: false,
-    TOOLBAR_ALWAYS_VISIBLE: true,
-    DEFAULT_BACKGROUND: "#f8f9fa",
-    CUSTOM_STYLE_URL: "/config/custom.css",
     SHOW_WATERMARK_FOR_GUESTS: false,
     SHOW_BRAND_WATERMARK: false,
-    BRAND_WATERMARK_LINK: '',
-    LANG_DETECTION: true,
-    CONNECTION_INDICATOR_DISABLED: false,
-  };
-
-  const handleApiReady = (api) => {
-    jitsiRef.current = api;
-
-    const updateParticipants = () => {
-      let count = 0;
-
-      // Essayer différentes méthodes pour obtenir le nombre de participants
-      if (typeof api.getNumberOfParticipants === "function") {
-        count = api.getNumberOfParticipants();
-      } else if (typeof api.getParticipantsInfo === "function") {
-        const participants = api.getParticipantsInfo();
-        count = Array.isArray(participants) ? participants.length : 0;
-      } else {
-        // Méthode alternative
-        try {
-          const participants = api._getParticipants();
-          count = participants ? participants.length : 0;
-        } catch (error) {
-          console.warn(
-            "Impossible de récupérer le nombre de participants:",
-            error
-          );
-          // Par défaut, on considère qu'il y a au moins 1 participant (soi-même)
-          count = iJoined ? 1 : 0;
-        }
-      }
-
-      console.log("Nombre de participants:", count);
-      setParticipantCount(count);
-    };
-
-    // Événements Jitsi
-    api.addEventListener("videoConferenceJoined", () => {
-      console.log("Utilisateur a rejoint la conférence");
-      setIJoined(true);
-      updateParticipants();
-    });
-
-    api.addEventListener("videoConferenceLeft", () => {
-      console.log("Utilisateur a quitté la conférence");
-      setIJoined(false);
-      setParticipantCount(0);
-    });
-
-    api.addEventListener("participantJoined", () => {
-      console.log("Un participant a rejoint");
-      updateParticipants();
-    });
-
-    api.addEventListener("participantLeft", () => {
-      console.log("Un participant a quitté");
-      updateParticipants();
-    });
-
-    // Vérification initiale
-    setTimeout(updateParticipants, 1000);
-  };
-
-  const handleLeaveWaitingRoom = () => {
-    if (jitsiRef.current) {
-      jitsiRef.current.executeCommand("hangup");
-    }
-    setIJoined(false);
-    setShowWaitingRoom(false);
-    console.log("Vous avez quitté la consultation.");
-  };
-
-  // Effet pour capturer le flux vidéo local
-  useEffect(() => {
-    if (iJoined && !isVideoMuted) {
-      startLocalVideo();
-    }
-    if (isVideoMuted) {
-      stopLocalVideo();
-    }
-  }, [iJoined, isVideoMuted, swappedView]);
-
-  const startLocalVideo = async () => {
-    try {
-      if (!localStream) {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
-        setLocalStream(stream);
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-      } else {
-        if (localVideoRef.current)
-          localVideoRef.current.srcObject = localStream;
-      }
-    } catch (error) {
-      console.error("Erreur d'accès à la caméra:", error);
-    }
-  };
-
-  const stopLocalVideo = () => {
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      localVideoRef.current.srcObject
-        .getTracks()
-        .forEach((track) => track.stop());
-    }
-  };
-
-  const toggleVideo = () => {
-    if (jitsiRef.current) {
-      jitsiRef.current.executeCommand("toggleVideo");
-      setIsVideoMuted(!isVideoMuted);
-    }
-  };
-
-  const toggleAudio = () => {
-    if (jitsiRef.current) {
-      jitsiRef.current.executeCommand("toggleAudio");
-      setIsAudioMuted(!isAudioMuted);
-    }
-  };
-
-  const handleSwapView = () => {
-    setSwappedView(!swappedView);
-  };
-
-  const handleVideoClick = () => {
-    handleSwapView();
   };
 
   return (
-    <>
-      {/* Salle d'attente */}
-      {iJoined && showWaitingRoom && (
-        <div className="waiting-room-overlay">
-          <div className={`waiting-content ${swappedView ? "swapped" : ""}`}>
-            {swappedView ? (
-              // Vue avec la vidéo en grand
-              <>
-                <div className="patient-video-preview-large">
-                  {isVideoMuted ? (
-                    <img
-                      className="avatar-image"
-                      src={
-                        userType === "patient"
-                          ? doctorInfo.avatar
-                          : patientInfo.avatar
-                      }
-                      alt="Avatar"
-                    />
-                  ) : (
-                    <>
-                      <video
-                        ref={localVideoRef}
-                        autoPlay
-                        muted
-                        playsInline
-                        className="live-video-large"
-                      />
-                    </>
-                  )}
-                  <button
-                    className={`epingler-button ${
-                      swappedView ? "epingle" : ""
-                    }`}
-                    onClick={handleVideoClick}
-                  >
-                    {swappedView ? <PinOff size={18} /> : <Pin size={18} />}
-                  </button>
-                </div>
-                <div>
-                  <div className="patient-video-preview">
-                    <img
-                      src={
-                        userType === "patient"
-                          ? doctorInfo.avatar
-                          : patientInfo.avatar
-                      }
-                      alt="preview avatar"
-                      className="patient-preview-img"
-                    />
-                  </div>
-                </div>
-              </>
-            ) : (
-              // Vue avec l'avatar en grand
-              <>
-                <div className="avatar-container">
-                  <div className="avatar-border">
-                    <img
-                      src={
-                        userType === "patient"
-                          ? doctorInfo.avatar
-                          : patientInfo.avatar
-                      }
-                      alt={
-                        userType === "patient"
-                          ? doctorInfo.name
-                          : patientInfo.name
-                      }
-                      className="avatar-image"
-                    />
-                  </div>
-                </div>
-                <div className="waiting-text">
-                  <h2 className="waiting-title">
-                    En attente de{" "}
-                    {userType === "patient"
-                      ? doctorInfo.name
-                      : patientInfo.name}
-                  </h2>
-                  <p className="waiting-message">
-                    {userType === "patient" ? (
-                      <>
-                        Vous serez informé(e) lorsque le{" "}
-                        <span>Dr. Mohamed Bouy</span> rejoindra la consultation
-                        vidéo.
-                      </>
-                    ) : (
-                      <>
-                        Vous serez informé(e) lorsque le <span>patient</span>{" "}
-                        rejoindra la consultation vidéo.
-                      </>
-                    )}
-                    <br />
-                    Veuillez rester en ligne et garder cette fenêtre ouverte.
-                  </p>
-                </div>
-                <div className="patient-video-preview">
-                  {isVideoMuted ? (
-                    <img
-                      src={patientInfo.avatar}
-                      alt="Votre vidéo"
-                      className="patient-preview-img"
-                    />
-                  ) : (
-                    <video
-                      ref={localVideoRef}
-                      autoPlay
-                      muted
-                      playsInline
-                      className="live-video small"
-                    />
-                  )}
+    <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+      {/* Contrôles flottants */}
+      {isConferenceJoined && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 10000,
+          display: 'flex',
+          gap: '10px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          padding: '10px 20px',
+          borderRadius: '25px',
+          backdropFilter: 'blur(10px)'
+        }}>
+          <button
+            onClick={toggleMicrophone}
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: isMuted ? '#ea4335' : '#3c4043',
+              color: 'white',
+              fontSize: '20px',
+              transition: 'all 0.2s',
+            }}
+            title={isMuted ? "Activer le micro" : "Désactiver le micro"}
+          >
+            {isMuted ? '🎤❌' : '🎤'}
+          </button>
 
-                  <button
-                    className={`epingler-button ${
-                      swappedView ? "epingle" : ""
-                    }`}
-                    onClick={handleSwapView}
-                    data-tooltip={swappedView ? "Désépingler" : "Épingler"}
-                  >
-                    {swappedView ? <PinOff size={18} /> : <Pin size={18} />}
-                  </button>
-                </div>
-              </>
-            )}
-            <div className="waiting-actions">
-              <button
-                className="leave-button"
-                onClick={() => handleLeaveWaitingRoom()}
-              >
-                <PhoneOff size={20} />
-              </button>
-              <button className="video-button" onClick={toggleVideo}>
-                {isVideoMuted ? (
-                  <VideoOff size={20} onClick={toggleVideo} />
-                ) : (
-                  <Video size={20} onClick={toggleVideo} />
-                )}
-              </button>
-              <button className="audio-button" onClick={toggleAudio}>
-                {isAudioMuted ? (
-                  <MicOff size={20} onClick={toggleAudio} />
-                ) : (
-                  <Mic size={20} onClick={toggleAudio} />
-                )}
-              </button>
-            </div>
-          </div>
+          <button
+            onClick={toggleCamera}
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: isVideoMuted ? '#ea4335' : '#3c4043',
+              color: 'white',
+              fontSize: '20px',
+              transition: 'all 0.2s',
+            }}
+            title={isVideoMuted ? "Activer la caméra" : "Désactiver la caméra"}
+          >
+            {isVideoMuted ? '📹❌' : '📹'}
+          </button>
+
+          <button
+            onClick={togglePip}
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: isPipActive ? '#fbbc04' : '#3c4043',
+              color: 'white',
+              fontSize: '20px',
+              transition: 'all 0.2s',
+            }}
+            title={isPipActive ? "Fermer le PiP" : "Ouvrir en PiP"}
+          >
+            {isPipActive ? '📺' : '⬜'}
+          </button>
+
+          <button
+            onClick={hangupCall}
+            style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: '#ea4335',
+              color: 'white',
+              fontSize: '20px',
+              transition: 'all 0.2s',
+            }}
+            title="Raccrocher"
+          >
+            📞
+          </button>
         </div>
       )}
 
-      {/* Jitsi iframe */}
-      <div
-        className={`jitsi-container ${
-          showWaitingRoom && iJoined ? "blurred" : ""
-        }`}
+      {/* Indicateur PiP */}
+      {isPipActive && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          zIndex: 9999,
+          padding: '10px 16px',
+          borderRadius: '20px',
+          backgroundColor: '#1a73e8',
+          color: 'white',
+          fontSize: '14px',
+          fontWeight: '500',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.2)',
+        }}>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#34a853',
+          }} />
+          PiP Actif
+        </div>
+      )}
+
+      <div 
+        ref={jitsiContainerRef}
+        style={{
+          width: '100%',
+          height: '100%',
+          background: '#f0f0f0'
+        }}
       >
         <JitsiMeeting
+          domain="jitsi-meet-clinital.duckdns.org"
+          roomName={roomId}
           onApiReady={handleApiReady}
-          domain="be086463d405.ngrok-free.app"
-          externalApiUrl="https://be086463d405.ngrok-free.app/external_api.js"
-          roomName={roomId || `test123`}
           onReadyToClose={handleReadyToClose}
           configOverwrite={jitsiConfig}
           interfaceConfigOverwrite={jitsiInterfaceConfig}
           userInfo={{
-            displayName:
-              userType === "patient" ? patientInfo.name : doctorInfo.name,
+            displayName: userType === "patient" ? patientInfo.name : doctorInfo.name,
           }}
           getIFrameRef={handleJitsiIFrameRef}
         />
       </div>
-    </>
+    </div>
   );
 };
 
-export default ConsultationApp;
+export default Test;
